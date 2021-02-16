@@ -1,0 +1,19 @@
+server:
+  port: 9005
+spring:
+  application:
+    name: gateway-server
+  cloud:
+    loadbalancer:
+      ribbon:
+        enabled: true
+jwt:
+  secret: teste
+##ROUTES
+zuul:
+ prefix: /api
+ sensitive-headers:
+eureka:
+  client:
+    service-url:
+      default-zone: http://localhost:8761/eureka/
