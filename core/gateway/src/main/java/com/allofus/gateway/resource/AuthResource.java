@@ -10,13 +10,12 @@ import com.allofus.commons.ws.request.LoginRequest;
 import com.allofus.commons.ws.response.AuthResponse;
 import com.allofus.gateway.service.AuthService;
 import com.allofus.gateway.utils.JwtTokenUtil;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.BadCredentialsException;
-import org.springframework.security.authentication.DisabledException;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.authentication.*;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -31,6 +30,7 @@ import java.util.logging.Logger;
  *
  * @author thiag
  */
+@Slf4j
 @RestController
 @RequestMapping(value = "/api/auth")
 public class AuthResource {
@@ -109,11 +109,17 @@ public class AuthResource {
 
     private void authenticate(String username, String password) throws Exception {
         try {
-            authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(username, password));
+            Authentication authenticate = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(username, password));
+            Object principal =  authenticate.getPrincipal();
         } catch (DisabledException e) {
-            throw new Exception("USER_DISABLED", e);
+            log.error("Exception : {}", e);
         } catch (BadCredentialsException e) {
-
+            //TODO: Atualiza as tentativas quando chegar a 5 tentativas desabilitar o usuario
+            log.error("Exception : {}", e);
+        }catch (LockedException e){
+            log.error("Exception : {}", e);
+        }catch (AccountExpiredException e){
+            log.error("Exception : {}", e);
         }
     }
 

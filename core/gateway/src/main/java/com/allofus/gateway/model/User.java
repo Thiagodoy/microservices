@@ -46,6 +46,9 @@ public class User implements UserDetails {
     @Column(name = "id_usuario_ator")
     private Long userCreatedUpdate;
 
+    @Column(name = "nr_erros_senha")
+    private Long attempts;
+
     @OneToOne
     @JoinColumn(name = "id_assinatura")
     private Signature signature;

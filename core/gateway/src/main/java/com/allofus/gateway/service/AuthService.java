@@ -7,16 +7,15 @@ package com.allofus.gateway.service;
 
 import com.allofus.gateway.model.User;
 import com.allofus.gateway.repository.UserRepository;
-import lombok.SneakyThrows;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
-/**
- * @author thiag
- */
+import javax.transaction.Transactional;
+
+
 @Service
 public class AuthService implements UserDetailsService {
 
@@ -25,10 +24,14 @@ public class AuthService implements UserDetailsService {
     private UserRepository repository;
 
 
-
     @Override
     public UserDetails loadUserByUsername(String string) throws UsernameNotFoundException {
-        return repository.findByEmail(string).orElseThrow(()-> new UsernameNotFoundException("Usuário não cadastrado!"));
+        return repository.findByEmail(string).orElseThrow(() -> new UsernameNotFoundException("Usuário não cadastrado!"));
+    }
+
+    @Transactional
+    public void update(User user) {
+        this.repository.save(user);
     }
 
 
