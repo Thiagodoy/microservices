@@ -1,6 +1,8 @@
 package com.allofus.gateway.handle;
 
 
+import com.allofus.commons.exception.ProfileException;
+import com.allofus.commons.exception.SignatureException;
 import com.allofus.commons.ws.response.ErrorResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -15,7 +17,6 @@ import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExcep
 @RestControllerAdvice
 public class ResponseExceptionHandler extends ResponseEntityExceptionHandler {
 
-
     @ExceptionHandler(value = {AuthenticationException.class})
     public ResponseEntity handleAuthenticationException(AuthenticationException authenticationException) {
         ErrorResponse.ErrorResponseBuilder builder = ErrorResponse.builder();
@@ -25,7 +26,7 @@ public class ResponseExceptionHandler extends ResponseEntityExceptionHandler {
                     .message("Usuário esta desabilitado. Contate o administrador!")
                     .stackError(authenticationException.getMessage())
                     .build();
-        } else if (authenticationException instanceof BadCredentialsException) {
+        } else if (authenticationException instanceof BadCredentialsException ) {
             response = builder.code(401)
                     .message("Usuário / Senha inválidos")
                     .stackError(authenticationException.getMessage())
@@ -40,6 +41,16 @@ public class ResponseExceptionHandler extends ResponseEntityExceptionHandler {
         return ResponseEntity.status(response.getCode()).body(response);
     }
 
+    @ExceptionHandler(value = {SignatureException.class, ProfileException.class})
+    public ResponseEntity handleUserException(Exception exception){
+        ErrorResponse response = ErrorResponse.builder().code(401)
+                .message(exception.getMessage())
+                .stackError(exception.getMessage())
+                .build();
+        log.error("Exception: {}",exception);
+        return ResponseEntity.status(response.getCode()).body(response);
+    }
+
     @ExceptionHandler(value = {Exception.class})
     public ResponseEntity handleException(Exception exception){
         ErrorResponse response = ErrorResponse.builder().code(500)
@@ -49,6 +60,5 @@ public class ResponseExceptionHandler extends ResponseEntityExceptionHandler {
         log.error("Exception: {}",exception);
         return ResponseEntity.status(response.getCode()).body(response);
     }
-
 
 }

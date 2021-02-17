@@ -6,28 +6,32 @@
 package com.allofus.gateway.resource;
 
 
+import com.allofus.commons.exception.ProfileException;
+import com.allofus.commons.exception.SignatureException;
 import com.allofus.commons.ws.request.LoginRequest;
 import com.allofus.commons.ws.response.AuthResponse;
+import com.allofus.commons.ws.response.ProfileResponse;
+import com.allofus.gateway.model.User;
 import com.allofus.gateway.service.AuthService;
 import com.allofus.gateway.utils.JwtTokenUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.authentication.*;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.servlet.http.HttpServletRequest;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 /**
- *
  * @author thiag
  */
 @Slf4j
@@ -46,40 +50,21 @@ public class AuthResource {
 
 
     @RequestMapping(method = RequestMethod.POST)
-    public ResponseEntity auth(@RequestBody LoginRequest request) {
-
-        try {
-            authenticate(request.getEmail(), request.getPassword());
-            final UserDetails userDetails = authService
-                    .loadUserByUsername(request.getEmail());
-            final String token = jwtTokenUtil.generateToken(userDetails);
-
-            AuthResponse response = AuthResponse.builder().token(token).email(request.getEmail()).profile("teste").name("Thiago").email("thiagogody@hotmai.com").build();
-
-
-            return ResponseEntity.ok(response);
-
-        } catch (Exception ex) {
-            Logger.getLogger(AuthResource.class.getName()).log(Level.SEVERE, null, ex);
-            return ResponseEntity.status(HttpStatus.resolve(500)).body(ex.getMessage());
-        }
-
+    public ResponseEntity auth(@RequestBody LoginRequest request) throws Exception {
+        final User user = authenticate(request.getEmail(), request.getPassword());
+        return ResponseEntity.ok(this.mount(user, true));
     }
 
-    @RequestMapping(value = "getUserByToken",method = RequestMethod.GET)
-    public ResponseEntity getUserByToken(HttpServletRequest request){
+    @RequestMapping(value = "getUserByToken", method = RequestMethod.GET)
+    public ResponseEntity getUserByToken(HttpServletRequest request) {
 
-
-        //FIXME Create a service with cache method tha load a user
         final String requestTokenHeader = request.getHeader("Authorization");
         String jwtToken = requestTokenHeader.substring(7);
 
         String usernameFromToken = jwtTokenUtil.getUsernameFromToken(jwtToken);
-        UserDetails userDetails = authService.loadUserByUsername(usernameFromToken);
+        User userDetails = (User) authService.loadUserByUsername(usernameFromToken);
 
-        AuthResponse response = AuthResponse.builder().token(jwtToken).email("thiagodoy@hotmail.com").profile("teste").name("Thiago").email("thiagogody@hotmai.com").build();
-
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(mount(userDetails, false));
 
     }
 
@@ -104,22 +89,51 @@ public class AuthResource {
             //Logger.getLogger(AuthResource.class.getName()).log(Level.SEVERE, "[ checkToken ]", ex);
             return ResponseEntity.status(HttpStatus.resolve(500)).body("TOKEN_EXPIRED");
         }
+    }
+
+    private AuthResponse mount(User user, boolean generateToken) {
+
+        AuthResponse.AuthResponseBuilder response = AuthResponse.builder()
+                .email(user.getEmail())
+                .name(user.getName())
+                .profiles(user.getProfiles().stream().map(userProfile -> {
+                    return ProfileResponse.builder()
+                            .description(userProfile.getProfile().getDescription())
+                            .id(userProfile.getProfile().getId())
+                            .build();
+                }).collect(Collectors.toList()));
+
+        if (generateToken) {
+            response.token(jwtTokenUtil.generateToken(user));
+        }
+
+        return response.build();
 
     }
 
-    private void authenticate(String username, String password) throws Exception {
+    private User authenticate(String username, String password) throws Exception {
         try {
             Authentication authenticate = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(username, password));
-            Object principal =  authenticate.getPrincipal();
-        } catch (DisabledException e) {
-            log.error("Exception : {}", e);
+
+            User user = (User) authenticate.getPrincipal();
+
+            Optional.ofNullable(user.getSignature())
+                    .stream()
+                    .filter(signature -> signature.getIsEnable())
+                    .findFirst()
+                    .orElseThrow(SignatureException::new);
+
+            Optional.ofNullable(user.getProfiles())
+                    .stream()
+                    .filter(userProfiles -> user.isEnabled())
+                    .findFirst()
+                    .orElseThrow(ProfileException::new);
+
+            authService.resetAttempts(username);
+            return (User) authenticate.getPrincipal();
         } catch (BadCredentialsException e) {
-            //TODO: Atualiza as tentativas quando chegar a 5 tentativas desabilitar o usuario
-            log.error("Exception : {}", e);
-        }catch (LockedException e){
-            log.error("Exception : {}", e);
-        }catch (AccountExpiredException e){
-            log.error("Exception : {}", e);
+            authService.updateAttempts(username);
+            throw e;
         }
     }
 

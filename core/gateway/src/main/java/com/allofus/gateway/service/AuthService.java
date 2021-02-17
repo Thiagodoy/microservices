@@ -30,9 +30,20 @@ public class AuthService implements UserDetailsService {
     }
 
     @Transactional
-    public void update(User user) {
-        this.repository.save(user);
+    public void updateAttempts(String email) {
+        repository.findByEmail(email).ifPresent(user->{
+            User us = (User)user;
+            us.setAttempts(us.getAttempts() + 1L);
+            this.repository.save(user);
+        });
     }
 
-
+    @Transactional
+    public void resetAttempts(String email) {
+        repository.findByEmail(email).ifPresent(user->{
+            User us = (User)user;
+            us.setAttempts(0L);
+            this.repository.save(user);
+        });
+    }
 }

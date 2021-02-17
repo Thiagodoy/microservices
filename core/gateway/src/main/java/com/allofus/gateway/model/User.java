@@ -2,6 +2,7 @@ package com.allofus.gateway.model;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
+import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -17,6 +18,7 @@ import java.util.List;
 @Builder
 @Entity
 @Table(name = "adm_usuario")
+@Data
 public class User implements UserDetails {
 
     @Id
