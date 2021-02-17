@@ -34,6 +34,9 @@ public class AuthService implements UserDetailsService {
         repository.findByEmail(email).ifPresent(user->{
             User us = (User)user;
             us.setAttempts(us.getAttempts() + 1L);
+            if(us.getAttempts().intValue() == 5){
+                us.setIsEnable(false);
+            }
             this.repository.save(user);
         });
     }

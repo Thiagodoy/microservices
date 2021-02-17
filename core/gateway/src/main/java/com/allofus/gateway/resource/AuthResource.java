@@ -68,29 +68,6 @@ public class AuthResource {
 
     }
 
-    @RequestMapping(method = RequestMethod.GET)
-    public ResponseEntity checkToken(HttpServletRequest request) {
-
-        try {
-
-            final String requestTokenHeader = request.getHeader("Authorization");
-            String jwtToken = null;
-
-            jwtToken = requestTokenHeader.substring(7);
-
-            boolean isValid = jwtTokenUtil.isTokenExpired(jwtToken);
-
-            if (!isValid) {
-                return ResponseEntity.ok().build();
-            } else {
-                throw new Exception();
-            }
-        } catch (Exception ex) {
-            //Logger.getLogger(AuthResource.class.getName()).log(Level.SEVERE, "[ checkToken ]", ex);
-            return ResponseEntity.status(HttpStatus.resolve(500)).body("TOKEN_EXPIRED");
-        }
-    }
-
     private AuthResponse mount(User user, boolean generateToken) {
 
         AuthResponse.AuthResponseBuilder response = AuthResponse.builder()

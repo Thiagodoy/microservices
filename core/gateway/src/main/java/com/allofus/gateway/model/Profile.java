@@ -1,13 +1,19 @@
 package com.allofus.gateway.model;
 
 
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
 
 @Data
 @Entity
 @Table(name = "adm_perfil")
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class Profile {
 
     @Id
