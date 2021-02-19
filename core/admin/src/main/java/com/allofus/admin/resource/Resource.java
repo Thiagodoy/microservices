@@ -9,6 +9,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 
+import java.security.Principal;
+
 public abstract class Resource<I extends Request, O extends Response, S extends Service, M extends Mapper> {
 
     private final S service;
@@ -20,29 +22,29 @@ public abstract class Resource<I extends Request, O extends Response, S extends 
     }
 
     @RequestMapping(method = RequestMethod.DELETE)
-    public ResponseEntity delete(Long id) {
+    public ResponseEntity delete(Long id, Principal principal) {
         return ResponseEntity.ok().build();
     }
 
     @RequestMapping(method = RequestMethod.GET)
-    public ResponseEntity<O> get(Long id) throws Exception {
-        Model model = this.service.find(id);
+    public ResponseEntity<O> get(Long id, Principal principal) throws Exception {
+        Model model = this.service.find(principal, id);
         return ResponseEntity.ok((O) mapper.toResponse(model));
     }
 
     @RequestMapping(method = RequestMethod.PUT)
-    public ResponseEntity put(I request) throws Exception {
+    public ResponseEntity put(I request, Principal principal) throws Exception {
 
         Model model = mapper.toEntity(request);
-        this.service.update(model);
+        this.service.update(principal, model);
 
         return ResponseEntity.ok().build();
     }
 
     @RequestMapping(method = RequestMethod.POST)
-    public ResponseEntity post(I request) {
+    public ResponseEntity post(I request, Principal principal) {
         Model model = mapper.toEntity(request);
-        this.service.save(model);
+        this.service.save(principal, model);
         return ResponseEntity.ok().build();
     }
 

@@ -19,7 +19,7 @@ import java.util.List;
 @Entity
 @Table(name = "adm_usuario")
 @Data
-public class User implements UserDetails {
+public class User implements UserDetails,Model {
 
     @Id
     @SequenceGenerator(name = "seq_generator_user",sequenceName = "seq_adm_usuario")

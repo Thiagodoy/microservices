@@ -1,0 +1,32 @@
+server:
+  port: 9005
+spring:
+  application:
+    name: gateway-server
+  cloud:
+    loadbalancer:
+      ribbon:
+        enabled: true
+  datasource:
+    username: postgres
+    password: root
+    url: jdbc:postgresql://localhost:5432/postgres
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: update
+    properties:
+        hibernate:
+          dialect: org.hibernate.dialect.PostgreSQLDialect
+
+
+jwt:
+  secret: teste
+##ROUTES
+zuul:
+ prefix: /api
+ sensitive-headers:
+eureka:
+  client:
+    service-url:
+      default-zone: http://localhost:8761/eureka/
