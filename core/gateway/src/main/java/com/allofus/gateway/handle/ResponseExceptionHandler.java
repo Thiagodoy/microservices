@@ -37,7 +37,6 @@ public class ResponseExceptionHandler extends ResponseEntityExceptionHandler {
                     .stackError(authenticationException.getMessage())
                     .build();
         }
-        log.error("Exception: {}",authenticationException);
         return ResponseEntity.status(response.getCode()).body(response);
     }
 

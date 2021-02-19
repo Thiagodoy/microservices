@@ -14,6 +14,7 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
+import java.util.Optional;
 
 
 @Service
@@ -31,20 +32,24 @@ public class AuthService implements UserDetailsService {
 
     @Transactional
     public void updateAttempts(String email) {
-        repository.findByEmail(email).ifPresent(user->{
-            User us = (User)user;
-            us.setAttempts(us.getAttempts() + 1L);
-            if(us.getAttempts().intValue() == 5){
-                us.setIsEnable(false);
+
+        Optional<User> byEmail = repository.findByEmail(email);
+
+        if (byEmail.isPresent()) {
+            User user = byEmail.get();
+            user.setAttempts(user.getAttempts() + 1L);
+            if (user.getAttempts().intValue() == 5) {
+                user.setIsEnable(false);
             }
             this.repository.save(user);
-        });
+        }
+
     }
 
     @Transactional
     public void resetAttempts(String email) {
-        repository.findByEmail(email).ifPresent(user->{
-            User us = (User)user;
+        repository.findByEmail(email).ifPresent(user -> {
+            User us = (User) user;
             us.setAttempts(0L);
             this.repository.save(user);
         });

@@ -51,7 +51,10 @@ public class AuthResource {
 
     @RequestMapping(method = RequestMethod.POST)
     public ResponseEntity auth(@RequestBody LoginRequest request) throws Exception {
-        final User user = authenticate(request.getEmail(), request.getPassword());
+
+        log.info("auth");
+
+        final User user = this.authenticate(request.getEmail(), request.getPassword());
         return ResponseEntity.ok(this.mount(user, true));
     }
 
@@ -73,6 +76,7 @@ public class AuthResource {
         AuthResponse.AuthResponseBuilder response = AuthResponse.builder()
                 .email(user.getEmail())
                 .name(user.getName())
+                .signature(user.getSignature().getId())
                 .profiles(user.getProfiles().stream().map(userProfile -> {
                     return ProfileResponse.builder()
                             .description(userProfile.getProfile().getDescription())
@@ -90,8 +94,9 @@ public class AuthResource {
 
     private User authenticate(String username, String password) throws Exception {
         try {
+            log.info("authenticate");
             Authentication authenticate = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(username, password));
-
+            log.info("authenticate_1");
             User user = (User) authenticate.getPrincipal();
 
             Optional.ofNullable(user.getSignature())
@@ -106,9 +111,11 @@ public class AuthResource {
                     .findFirst()
                     .orElseThrow(ProfileException::new);
 
+            log.info("resetAttempts");
             authService.resetAttempts(username);
             return (User) authenticate.getPrincipal();
         } catch (BadCredentialsException e) {
+            log.info("updateAttempts");
             authService.updateAttempts(username);
             throw e;
         }
