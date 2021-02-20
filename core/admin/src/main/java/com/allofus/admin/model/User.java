@@ -103,4 +103,8 @@ public class User implements UserDetails,Model {
     public void generateUpdateAt(){
         this.updateAt = LocalDateTime.now();
     }
+
+    public Long getId(){
+        return id;
+    }
 }
