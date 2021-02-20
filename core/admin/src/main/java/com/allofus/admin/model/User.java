@@ -4,6 +4,11 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.springframework.data.annotation.CreatedBy;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.LastModifiedBy;
+import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
@@ -19,6 +24,7 @@ import java.util.List;
 @Entity
 @Table(name = "adm_usuario")
 @Data
+@EntityListeners(AuditingEntityListener.class)
 public class User implements UserDetails,Model {
 
     @Id
@@ -40,13 +46,20 @@ public class User implements UserDetails,Model {
     private Boolean isEnable;
 
     @Column(name = "dt_criacao")
+    @CreatedDate
     private LocalDateTime createdAt;
 
     @Column(name = "dt_alteracao")
+    @LastModifiedDate
     private LocalDateTime updateAt;
 
-    @Column(name = "id_usuario_ator")
-    private Long userCreatedUpdate;
+    @CreatedBy
+    @Column(name = "criado_por")
+    private String createdByUser;
+
+    @LastModifiedBy
+    @Column(name = "atualizado_por")
+    private String userCreatedUpdate;
 
     @Column(name = "nr_erros_senha")
     private Long attempts;
@@ -94,15 +107,15 @@ public class User implements UserDetails,Model {
     }
 
 
-    @PrePersist
-    public void generateCreatedAt(){
-        this.createdAt = LocalDateTime.now();
-    }
-
-    @PreUpdate
-    public void generateUpdateAt(){
-        this.updateAt = LocalDateTime.now();
-    }
+//    @PrePersist
+//    public void generateCreatedAt(){
+//        this.createdAt = LocalDateTime.now();
+//    }
+//
+//    @PreUpdate
+//    public void generateUpdateAt(){
+//        this.updateAt = LocalDateTime.now();
+//    }
 
     public Long getId(){
         return id;
