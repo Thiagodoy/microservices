@@ -13,7 +13,7 @@ import java.security.Principal;
 import java.util.List;
 import java.util.stream.Collectors;
 @org.springframework.stereotype.Service
-public class Service <T extends Model, R extends JpaRepository<T, Long> & JpaSpecificationExecutor<T>>{
+public abstract class Service <T extends Model, R extends JpaRepository<T, Long> & JpaSpecificationExecutor<T>>{
 
 
     protected R repository;

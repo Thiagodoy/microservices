@@ -13,8 +13,8 @@ import java.security.Principal;
 
 public abstract class Resource<I extends Request, O extends Response, S extends Service, M extends Mapper> {
 
-    private final S service;
-    private final M mapper;
+    protected final S service;
+    protected final M mapper;
 
     public Resource(M mapper, S service) {
         this.mapper = mapper;
